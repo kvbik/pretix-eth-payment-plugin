@@ -35,6 +35,7 @@ class Command(BaseCommand):
                 'This is used to determine the wallet address to check for '
                 'payments.'
             ),
+        )
         parser.add_argument(
             "--order-age",
             help="only confirm order newer than given amount of seconds",
