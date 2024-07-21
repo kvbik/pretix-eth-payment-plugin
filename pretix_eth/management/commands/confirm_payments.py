@@ -1,8 +1,6 @@
 import logging
-from datetime import timedelta
 
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 
 from django_scopes import scope
 
@@ -33,21 +31,13 @@ class Command(BaseCommand):
             help=(
                 'The slug of the event for which payments should be confirmed.  '
                 'This is used to determine the wallet address to check for '
-                'payments.'
+                'payments. Default: all events.'
             ),
-        )
-        parser.add_argument(
-            "--order-age",
-            help="only confirm order newer than given amount of seconds",
-            type=int,
         )
 
     def handle(self, *args, **options):
-        now = timezone.now()
-
         no_dry_run = options["no_dry_run"]
         event_slug = options["event_slug"]
-        order_age = options["order_age"]
         log_verbosity = int(options.get("verbosity", 0))
 
         with scope(organizer=None):
@@ -56,13 +46,10 @@ class Command(BaseCommand):
             if event_slug is not None:
                 events = events.filter(slug=event_slug)
 
-        created_after = None
-        if order_age:
-            created_after = now - timedelta(seconds=order_age)
         for event in events:
-            self.confirm_payments_for_event(event, no_dry_run, log_verbosity, event_slug, created_after)
+            self.confirm_payments_for_event(event, no_dry_run, log_verbosity, event_slug)
 
-    def confirm_payments_for_event(self, event: Event, no_dry_run, log_verbosity=0, event_slug=None, created_after=None):
+    def confirm_payments_for_event(self, event: Event, no_dry_run, log_verbosity=0, event_slug=None):
         if not event_slug:
             logger.info(f"Event name - {event.name}")
 
